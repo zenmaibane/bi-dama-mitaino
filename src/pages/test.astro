@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ReactComponents from '../components/React.jsx';
+---
+<Layout>
+  <main>
+    <ReactComponents client:only="react" />
+  </main>
+</Layout>
+
+<style>
+//
+</style>
