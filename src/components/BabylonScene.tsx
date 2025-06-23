@@ -11,6 +11,7 @@ import {
 } from "@babylonjs/core";
 import { lambertShader } from "@/shader/lambert";
 import { vanillaShader } from "@/shader/vanilla";
+import { phongShader } from "@/shader/phong";
 
 export const BabylonScene = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,7 +51,7 @@ export const BabylonScene = () => {
       new Vector3(0.5, 1, 0),
       scene
     );
-    directionalLight.intensity = 0.7;
+    directionalLight.intensity = 1.0;
     directionalLight.position = new Vector3(0, 10, 0);
 
     const vanilla = vanillaShader(scene, "vanilla", new Vector3(0.2, 0.6, 1.0));
@@ -60,8 +61,13 @@ export const BabylonScene = () => {
 
     const lambert = lambertShader(scene, "lambert", new Vector3(0.2, 0.6, 1.0));
     const lambertSphere = MeshBuilder.CreateSphere("lambertSphere", {}, scene);
-    lambertSphere.position = new Vector3(0, 0, 1.5);
+    lambertSphere.position = new Vector3(0, 0, 0);
     lambertSphere.material = lambert;
+
+    const phong = phongShader(scene, "phong", new Vector3(0.2, 0.6, 1.0));
+    const phongSphere = MeshBuilder.CreateSphere("phongSphere", {}, scene);
+    phongSphere.position = new Vector3(0, 0, 1.5);
+    phongSphere.material = phong;
 
     engine.runRenderLoop(() => {
       lambert.setVector3(
@@ -69,6 +75,13 @@ export const BabylonScene = () => {
         directionalLight.direction.normalize()
       );
       lambert.setFloat("lightIntensity", directionalLight.intensity);
+
+      phong.setVector3(
+        "lightDirection",
+        directionalLight.direction.normalize()
+      );
+      phong.setFloat("lightIntensity", directionalLight.intensity);
+      phong.setVector3("cameraPosition", camera.position);
       scene.render();
     });
 
