@@ -7,16 +7,10 @@ import {
   MeshBuilder,
   Vector3,
   Color4,
-  StandardMaterial,
-  Color3,
   DirectionalLight,
-  ShadowGenerator,
-  Texture,
-  MultiMaterial,
-  SubMesh,
-  Effect,
-  ShaderMaterial,
 } from "@babylonjs/core";
+import { lambertShader } from "@/shader/lambert";
+import { vanillaShader } from "@/shader/vanilla";
 
 export const BabylonScene = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,36 +53,22 @@ export const BabylonScene = () => {
     directionalLight.intensity = 0.7;
     directionalLight.position = new Vector3(0, 10, 0);
 
-    const shaderMaterial = new ShaderMaterial(
-      "shader",
-      scene,
-      {
-        vertex: "custom",
-        fragment: "custom",
-      },
-      {
-        attributes: ["position", "normal", "uv"],
-        uniforms: [
-          "world",
-          "worldView",
-          "worldViewProjection",
-          "view",
-          "projection",
-          "lightDirection",
-        ],
-      }
-    );
+    const vanilla = vanillaShader(scene, "vanilla", new Vector3(0.2, 0.6, 1.0));
+    const vanillaSphere = MeshBuilder.CreateSphere("vanillaSphere", {}, scene);
+    vanillaSphere.position = new Vector3(0, 0, -1.5);
+    vanillaSphere.material = vanilla;
 
-    shaderMaterial.setVector3(
-      "lightDirection",
-      directionalLight.direction.normalize()
-    );
-
-    const sphere = MeshBuilder.CreateSphere("sphere", {}, scene);
-    sphere.position = new Vector3(0, 0, 0);
-    sphere.material = shaderMaterial;
+    const lambert = lambertShader(scene, "lambert", new Vector3(0.2, 0.6, 1.0));
+    const lambertSphere = MeshBuilder.CreateSphere("lambertSphere", {}, scene);
+    lambertSphere.position = new Vector3(0, 0, 1.5);
+    lambertSphere.material = lambert;
 
     engine.runRenderLoop(() => {
+      lambert.setVector3(
+        "lightDirection",
+        directionalLight.direction.normalize()
+      );
+      lambert.setFloat("lightIntensity", directionalLight.intensity);
       scene.render();
     });
 
@@ -100,32 +80,3 @@ export const BabylonScene = () => {
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />;
 };
-
-Effect.ShadersStore["customVertexShader"] = `
-  precision highp float;
-  attribute vec3 position;
-  attribute vec3 normal;
-  uniform mat4 worldViewProjection;
-  uniform mat4 world;
-  varying vec3 vPositionW;
-  varying vec3 vNormal;
-  void main(void) {
-    gl_Position = worldViewProjection * vec4(position, 1.0);
-    vPositionW = (world * vec4(position, 1.0)).xyz;
-    vNormal = normalize(mat3(world) * normal);
-  }`;
-
-Effect.ShadersStore["customFragmentShader"] = `
-  precision highp float;
-  uniform vec3 lightDirection;
-  varying vec3 vPositionW;
-  varying vec3 vNormal;
-  void main(void) {
-    vec3 baseColor = vec3(0.2, 0.6, 1.0);
-    // memo:ここで0とのmaxを取っているのは、マイナスのときは見えてないとされるため。
-    float NdotL = max(dot(normalize(vNormal), lightDirection), 0.0);
-    float lightPower = 1.0;
-    // memo: ランバート反射モデルの計算
-    float diffuse = NdotL * lightPower;
-    gl_FragColor = vec4(baseColor * diffuse, 1.0);
-  }`;
