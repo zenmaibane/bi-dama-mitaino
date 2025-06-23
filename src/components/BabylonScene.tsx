@@ -39,7 +39,7 @@ export const BabylonScene = () => {
       0,
       Math.PI / 3,
       10,
-      new Vector3(0, 1, 0),
+      new Vector3(0, 0, 0),
       scene
     );
     camera.attachControl(canvas, true);
@@ -53,7 +53,7 @@ export const BabylonScene = () => {
 
     const directionalLight = new DirectionalLight(
       "light",
-      new Vector3(-0.5, -1, 0),
+      new Vector3(0.5, 1, 0),
       scene
     );
     directionalLight.intensity = 0.7;
@@ -74,8 +74,14 @@ export const BabylonScene = () => {
           "worldViewProjection",
           "view",
           "projection",
+          "lightDirection",
         ],
       }
+    );
+
+    shaderMaterial.setVector3(
+      "lightDirection",
+      directionalLight.direction.normalize()
     );
 
     const sphere = MeshBuilder.CreateSphere("sphere", {}, scene);
@@ -98,13 +104,28 @@ export const BabylonScene = () => {
 Effect.ShadersStore["customVertexShader"] = `
   precision highp float;
   attribute vec3 position;
+  attribute vec3 normal;
   uniform mat4 worldViewProjection;
+  uniform mat4 world;
+  varying vec3 vPositionW;
+  varying vec3 vNormal;
   void main(void) {
     gl_Position = worldViewProjection * vec4(position, 1.0);
+    vPositionW = (world * vec4(position, 1.0)).xyz;
+    vNormal = normalize(mat3(world) * normal);
   }`;
 
 Effect.ShadersStore["customFragmentShader"] = `
   precision highp float;
+  uniform vec3 lightDirection;
+  varying vec3 vPositionW;
+  varying vec3 vNormal;
   void main(void) {
-    gl_FragColor = vec4(0.2, 0.6, 1.0, 1.0);
+    vec3 baseColor = vec3(0.2, 0.6, 1.0);
+    // memo:ここで0とのmaxを取っているのは、マイナスのときは見えてないとされるため。
+    float NdotL = max(dot(normalize(vNormal), lightDirection), 0.0);
+    float lightPower = 1.0;
+    // memo: ランバート反射モデルの計算
+    float diffuse = NdotL * lightPower;
+    gl_FragColor = vec4(baseColor * diffuse, 1.0);
   }`;
