@@ -14,6 +14,8 @@ import {
   Texture,
   MultiMaterial,
   SubMesh,
+  Effect,
+  ShaderMaterial,
 } from "@babylonjs/core";
 
 export const BabylonScene = () => {
@@ -57,8 +59,28 @@ export const BabylonScene = () => {
     directionalLight.intensity = 0.7;
     directionalLight.position = new Vector3(0, 10, 0);
 
+    const shaderMaterial = new ShaderMaterial(
+      "shader",
+      scene,
+      {
+        vertex: "custom",
+        fragment: "custom",
+      },
+      {
+        attributes: ["position", "normal", "uv"],
+        uniforms: [
+          "world",
+          "worldView",
+          "worldViewProjection",
+          "view",
+          "projection",
+        ],
+      }
+    );
+
     const sphere = MeshBuilder.CreateSphere("sphere", {}, scene);
     sphere.position = new Vector3(0, 0, 0);
+    sphere.material = shaderMaterial;
 
     engine.runRenderLoop(() => {
       scene.render();
@@ -72,3 +94,17 @@ export const BabylonScene = () => {
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />;
 };
+
+Effect.ShadersStore["customVertexShader"] = `
+  precision highp float;
+  attribute vec3 position;
+  uniform mat4 worldViewProjection;
+  void main(void) {
+    gl_Position = worldViewProjection * vec4(position, 1.0);
+  }`;
+
+Effect.ShadersStore["customFragmentShader"] = `
+  precision highp float;
+  void main(void) {
+    gl_FragColor = vec4(0.2, 0.6, 1.0, 1.0);
+  }`;
