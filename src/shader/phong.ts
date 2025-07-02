@@ -58,9 +58,10 @@ Effect.ShadersStore["phongFragmentShader"] = `
     vec3 reflectVector = -lightDirection + 2.0 * vNormal * dot(lightDirection, vNormal);
     vec3 viewDirection = normalize(cameraPosition - vPositionW);
     float shininess = 32.0; 
-    float specularStrength = 1.0; 
-    float specular = pow(max(dot(reflectVector, viewDirection),0.0),shininess) * specularStrength; 
+    float specularIntensity = 1.0; 
+    float specular = pow(max(dot(reflectVector, viewDirection),0.0),shininess) * specularIntensity; 
+    float ambientIntensity = 0.1;
 
-    vec3 resultColor = baseColor * diffuse + vec3(1.0) * specular;
+    vec3 resultColor =  diffuse * baseColor + specular * vec3(1.0) + ambientIntensity * baseColor;
     gl_FragColor = vec4(resultColor, 1.0);
   }`;
