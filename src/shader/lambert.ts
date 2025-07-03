@@ -52,8 +52,9 @@ Effect.ShadersStore["lambertFragmentShader"] = `
   varying vec3 vPositionW;
   varying vec3 vNormal;
   void main(void) {
+    vec3 toLightDirection = -lightDirection;
     // memo:ここで0とのmaxを取っているのは、マイナスのときは見えてないとされるため。
-    float NdotL = max(dot(normalize(vNormal), lightDirection), 0.0);
+    float NdotL = max(dot(normalize(vNormal), toLightDirection), 0.0);
     // memo: ランバート反射モデルの計算
     float diffuse = NdotL * lightIntensity;
     gl_FragColor = vec4(baseColor * diffuse, 1.0);

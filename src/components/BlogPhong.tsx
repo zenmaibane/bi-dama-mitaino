@@ -3,11 +3,12 @@ import {
   Engine,
   Scene,
   ArcRotateCamera,
-  HemisphericLight,
   MeshBuilder,
-  Vector3,
-  Color4,
   DirectionalLight,
+  StandardMaterial,
+  Color4,
+  Vector3,
+  Color3,
 } from "@babylonjs/core";
 import { lambertShader } from "@/shader/lambert";
 import { vanillaShader } from "@/shader/vanilla";
@@ -20,7 +21,7 @@ export const BlogPhong = () => {
     const canvas = canvasRef.current;
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
-    scene.clearColor = new Color4(0.04, 0.04, 0.1, 1);
+    scene.clearColor = new Color4(0.04, 0.04, 0.1, 0.7);
 
     const handleResize = () => {
       if (engine) {
@@ -39,16 +40,9 @@ export const BlogPhong = () => {
     );
     camera.attachControl(canvas, true);
 
-    const hemisphericLight = new HemisphericLight(
-      "light",
-      new Vector3(0, 1, 0),
-      scene
-    );
-    hemisphericLight.intensity = 0.7;
-
     const directionalLight = new DirectionalLight(
       "light",
-      new Vector3(0.5, 1, 0),
+      new Vector3(-0.5, -1, 0),
       scene
     );
     directionalLight.intensity = 1.0;
@@ -56,18 +50,28 @@ export const BlogPhong = () => {
 
     const vanilla = vanillaShader(scene, "vanilla", new Vector3(0.2, 0.6, 1.0));
     const vanillaSphere = MeshBuilder.CreateSphere("vanillaSphere", {}, scene);
-    vanillaSphere.position = new Vector3(0, 0, -1.5);
+    vanillaSphere.position = new Vector3(0, 0, -1.75);
     vanillaSphere.material = vanilla;
 
     const lambert = lambertShader(scene, "lambert", new Vector3(0.2, 0.6, 1.0));
     const lambertSphere = MeshBuilder.CreateSphere("lambertSphere", {}, scene);
-    lambertSphere.position = new Vector3(0, 0, 0);
+    lambertSphere.position = new Vector3(0, 0, -0.5);
     lambertSphere.material = lambert;
 
     const phong = phongShader(scene, "phong", new Vector3(0.2, 0.6, 1.0));
     const phongSphere = MeshBuilder.CreateSphere("phongSphere", {}, scene);
-    phongSphere.position = new Vector3(0, 0, 1.5);
+    phongSphere.position = new Vector3(0, 0, 0.75);
     phongSphere.material = phong;
+
+    const standardMaterial = new StandardMaterial("standardMaterial", scene);
+    standardMaterial.diffuseColor = new Color3(0.2, 0.6, 1.0);
+    const standardSphere = MeshBuilder.CreateSphere(
+      "standardSphere",
+      {},
+      scene
+    );
+    standardSphere.position = new Vector3(0, 0, 2.0);
+    standardSphere.material = standardMaterial;
 
     engine.runRenderLoop(() => {
       lambert.setVector3(

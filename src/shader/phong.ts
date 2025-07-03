@@ -50,12 +50,13 @@ Effect.ShadersStore["phongFragmentShader"] = `
   varying vec3 vPositionW;
   varying vec3 vNormal;
   void main(void) {
-    float NdotL = max(dot(normalize(vNormal), lightDirection), 0.0);
+    vec3 toLightDirection = -lightDirection;
+    float NdotL = max(dot(normalize(vNormal), toLightDirection), 0.0);
     float diffuse = NdotL * lightIntensity;
 
     // reflectVectorを導くreflect関数があるが、敢えて自分で計算する 
     // implements: https://registry.khronos.org/OpenGL-Refpages/gl4/html/reflect.xhtml
-    vec3 reflectVector = -lightDirection + 2.0 * vNormal * dot(lightDirection, vNormal);
+    vec3 reflectVector = - toLightDirection + 2.0 * vNormal * dot(toLightDirection, vNormal);
     vec3 viewDirection = normalize(cameraPosition - vPositionW);
     float shininess = 32.0; 
     float specularIntensity = 1.0; 
